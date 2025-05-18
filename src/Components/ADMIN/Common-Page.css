@@ -3,7 +3,8 @@ background: radial-gradient( 100% 100% at var(--g3-3-x-position) var(--g3-3-y-po
 animation-name: g-3;
 animation-iteration-count: infinite;
 animation-duration: 6s;
-transition-timing-function: ease-in
+transition-timing-function: ease-in;
+height: 100vh;
 }
 
 @property --g3-1-x-position { syntax: "<percentage>"; inherits: false; initial-value: 16.09375%; }

@@ -26,12 +26,15 @@ const AAnalysis = () => {
   };
 
   const handleAnalyseClick = () => {
-    if (file) {
+    if (file || url.trim()) {
+      setError("");
       setShowResults(true);
     } else {
-      setError("Please upload a file before analysing.");
+      setError("Please upload a file or enter a URL before analysing.");
     }
   };
+
+  const [url, setUrl] = useState("");
 
   // Styles
   const containerStyle = {
@@ -130,6 +133,24 @@ const AAnalysis = () => {
                   File selected: {file.name}
                 </p>
               )}
+
+              <p style={{ margin: "1rem 0", fontWeight: "bold" }}>OR</p>
+
+              <input
+                type="text"
+                placeholder="Paste URL to dataset..."
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  fontSize: "1rem",
+                  border: "1px solid #ccc",
+                  borderRadius: "10px",
+                  marginBottom: "1rem",
+                }}
+              />
+
               <button onClick={handleAnalyseClick} style={buttonStyle}>
                 Analyse <FaPaperPlane />
               </button>
@@ -171,7 +192,7 @@ const AAnalysis = () => {
                       DDoS
                     </td>
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <td style={{ padding: "10px", fontWeight: "bold" }}>
                       SEVERITY LEVEL
                     </td>
@@ -190,17 +211,17 @@ const AAnalysis = () => {
                       ACCURACY
                     </td>
                     <td style={{ padding: "10px", fontWeight: "bold" }}>96%</td>
-                  </tr>
+                  </tr> */}
                 </tbody>
               </table>
               <p style={{ fontSize: "0.95rem", color: "#333" }}>
                 Know more about this Malware Insight and Prevention?
               </p>
-              <button
+              {/* <button
                 style={{ ...buttonStyle, float: "none", marginTop: "1rem" }}
               >
-                Register
-              </button>
+                Save to History
+              </button> */}
             </>
           )}
         </div>
