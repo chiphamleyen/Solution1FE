@@ -1,139 +1,167 @@
-import React from "react";
+import React, { useState } from "react";
 import ANavigationBar from "../ADMIN/ANavigation/ANavigationBar";
-import { Card, ListGroup } from "react-bootstrap";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-
-const userLineChart = [
-  {
-    name: "DDOS",
-    Dataset1: 4000,
-    Dataset2: 2400,
-    amt: 2400,
-  },
-  {
-    name: "Virus",
-    Dataset1: 3000,
-    Dataset2: 1398,
-    amt: 2210,
-  },
-  {
-    name: "Worm",
-    Dataset1: 2000,
-    Dataset2: 9800,
-    amt: 2290,
-  },
-  {
-    name: "Trojan",
-    Dataset1: 2780,
-    Dataset2: 3908,
-    amt: 2000,
-  },
-  {
-    name: "Rootkit",
-    Dataset1: 1890,
-    Dataset2: 4800,
-    amt: 2181,
-  },
-  {
-    name: "Ransomware",
-    Dataset1: 2390,
-    Dataset2: 3800,
-    amt: 2500,
-  },
-  {
-    name: "Botnets",
-    Dataset1: 3490,
-    Dataset2: 4300,
-    amt: 2100,
-  },
-];
+import { Table, Button, Modal, Form, Card, Pagination } from "react-bootstrap";
 
 const AManagement = () => {
-  const containerStyle = {
-    width: "100%",
-    height: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "space-evenly",
-    padding: "1rem",
-    // backgroundColor: "#1a1a2e", // Optional: background color
-  };
+  const [users, setUsers] = useState([
+    {
+      user_name: "testAdmin",
+      email: "testAdmin@gmail.com",
+      role: "user",
+      created_at: "2025-05-18T05:37:03.443000",
+    },
+    {
+      user_name: "janeDoe",
+      email: "jane@example.com",
+      role: "user",
+      created_at: "2025-04-01T12:00:00.000Z",
+    },
+    {
+      user_name: "johnDoe",
+      email: "john@example.com",
+      role: "admin",
+      created_at: "2025-03-15T10:00:00.000Z",
+    },
+    {
+      user_name: "alice",
+      email: "alice@example.com",
+      role: "user",
+      created_at: "2025-02-10T08:00:00.000Z",
+    },
+    {
+      user_name: "bob",
+      email: "bob@example.com",
+      role: "user",
+      created_at: "2025-01-20T09:30:00.000Z",
+    },
+    // Add more for demo if needed
+  ]);
 
-  const cardStyle = {
-    width: "90%",
-    height: "48%", // Slightly less than 50% to allow spacing
-    overflowY: "auto",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    // color: "white",
-    backdropFilter: "blur(10px)",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
+  const [showModal, setShowModal] = useState(false);
+  const [editUser, setEditUser] = useState(null);
+  const [updatedName, setUpdatedName] = useState("");
+  const [updatedPassword, setUpdatedPassword] = useState("");
+
+  // Pagination setup
+  const itemsPerPage = 3;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const paginatedUsers = users.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const renderPagination = () => {
+    const totalPages = Math.ceil(users.length / itemsPerPage);
+    return (
+      <Pagination>
+        {[...Array(totalPages)].map((_, idx) => (
+          <Pagination.Item
+            key={idx}
+            active={idx + 1 === currentPage}
+            onClick={() => setCurrentPage(idx + 1)}
+          >
+            {idx + 1}
+          </Pagination.Item>
+        ))}
+      </Pagination>
+    );
   };
 
   return (
     <div className="commonStyle">
       <ANavigationBar />
 
-      <div style={containerStyle}>
-        {/* Top Card */}
-        <Card style={cardStyle}>
-          <Card.Body>
-            <Card.Title>Users logs over time</Card.Title>
-            <ResponsiveContainer width={1600} height={350}>
-              <LineChart
-                width={500}
-                height={300}
-                data={userLineChart}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="Dataset1"
-                  stroke="#8884d8"
-                  activeDot={{ r: 8 }}
-                />
-                <Line type="monotone" dataKey="Dataset2" stroke="#82ca9d" />
-              </LineChart>
-            </ResponsiveContainer>
-          </Card.Body>
-        </Card>
+      {/* USER MANAGEMENT */}
+      <Card className="m-4">
+        <Card.Body>
+          <Card.Title>User Management</Card.Title>
+          <Table striped bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedUsers.map((user, idx) => (
+                <tr key={idx}>
+                  <td>{user.user_name}</td>
+                  <td>{user.email}</td>
+                  <td>{user.role}</td>
+                  <td>{new Date(user.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => {
+                        setEditUser(user);
+                        setUpdatedName(user.user_name);
+                        setUpdatedPassword("");
+                        setShowModal(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          {renderPagination()}
+        </Card.Body>
+      </Card>
 
-        {/* Bottom Card with List */}
-        <Card style={cardStyle}>
-          <Card.Body>
-            <Card.Title>Users</Card.Title>
-            <ListGroup variant="flush">
-              <ListGroup.Item>User 1</ListGroup.Item>
-              <ListGroup.Item>User 2</ListGroup.Item>
-              <ListGroup.Item>User 3</ListGroup.Item>
-              <ListGroup.Item>User 4</ListGroup.Item>
-              <ListGroup.Item>User 5</ListGroup.Item>
-              <ListGroup.Item>User 6</ListGroup.Item>
-              <ListGroup.Item>User 7</ListGroup.Item>
-              <ListGroup.Item>User 8</ListGroup.Item>
-            </ListGroup>
-          </Card.Body>
-        </Card>
-      </div>
+      {/* Modal for user edit */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit User</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="formUsername">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                value={updatedName}
+                onChange={(e) => setUpdatedName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group controlId="formPassword" className="mt-3">
+              <Form.Label>New Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Leave blank to keep unchanged"
+                value={updatedPassword}
+                onChange={(e) => setUpdatedPassword(e.target.value)}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="success"
+            onClick={() => {
+              setUsers((prev) =>
+                prev.map((u) =>
+                  u.email === editUser.email
+                    ? { ...u, user_name: updatedName }
+                    : u
+                )
+              );
+              setShowModal(false);
+            }}
+          >
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

@@ -105,6 +105,9 @@ const ANavigationBar = () => {
         <Nav.Link as={Link} to="/AManagement">
           <i className="fa fa-user"></i> User Management
         </Nav.Link>
+        <Nav.Link as={Link} to="/ASubmissionReview">
+          <i className="fa fa-user"></i> Submission Review
+        </Nav.Link>
       </Nav>
 
       {/* Right-side (profile & logout) */}
