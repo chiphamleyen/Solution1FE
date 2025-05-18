@@ -9,6 +9,7 @@ import UDash from "./Components/USER/UDash";
 import UAnalysis from "./Components/USER/UAnalysis";
 import UManagement from "./Components/USER/UManagement";
 import ULoginReg from "./Components/USER/User Login Register/ULoginReg";
+import ASubmissionReview from './Components/ADMIN/ASubmissionReview';
 
 
 
@@ -22,6 +23,7 @@ const App = () => {
           <Route path="ADash" element={<ADash/>} />
           <Route path="AAnalysis" element={<AAnalysis />} />
           <Route path="AManagement" element={<AManagement />} />
+          <Route path="ASubmissionReview" element={<ASubmissionReview />} />
 
 {/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */}
 
