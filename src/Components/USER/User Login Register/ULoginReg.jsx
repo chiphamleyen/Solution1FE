@@ -105,7 +105,7 @@ const ULoginReg = () => {
         // Success: User logged in
         setShowSuccessModal(true);
         // You can store the access token in localStorage or sessionStorage for use
-        localStorage.setItem("access_token", response.data.data.access_token);
+        localStorage.setItem("user_token", response.data.data.access_token);
         // Optionally redirect the user to a dashboard or home page
         navigate("/UDash");
       } else {

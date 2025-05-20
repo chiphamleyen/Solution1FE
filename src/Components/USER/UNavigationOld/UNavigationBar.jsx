@@ -100,11 +100,8 @@ const UNavigationBar = () => {
             <Nav.Link as={Link} to="/UAnalysis">
               <i className="fa-solid fa-magnifying-glass-chart"></i> Analysis
             </Nav.Link>
-            {/* <Nav.Link as={Link} to="/UManagement">
+            <Nav.Link as={Link} to="/UManagement">
               <i className="fa fa-user"></i> User Management
-            </Nav.Link> */}
-            <Nav.Link as={Link} to="/UHistory">
-              <i className="fa fa-user"></i> History
             </Nav.Link>
           </Nav>
 
