@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "../ADMIN/Common-Page.css";
-import { FaPaperPlane } from "react-icons/fa";
+import { FaPaperPlane, FaChevronLeft, FaChevronRight, FaFilter } from "react-icons/fa";
 import UNavigationBar from "./uNavigation/UNavigationBar";
 
 
@@ -18,6 +18,9 @@ const UAnalysis = () => {
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter] = useState("all"); // "all", "detected", "benign"
+  const resultsPerPage = 15;
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -103,6 +106,76 @@ const UAnalysis = () => {
     }
   };
 
+  // Filter results based on selected filter
+  const filteredResults = results.filter(item => {
+    if (filter === "all") return true;
+    if (filter === "detected") return item.detection;
+    if (filter === "benign") return !item.detection;
+    return true;
+  });
+
+  // Update pagination logic to use filtered results
+  const indexOfLastResult = currentPage * resultsPerPage;
+  const indexOfFirstResult = indexOfLastResult - resultsPerPage;
+  const currentResults = filteredResults.slice(indexOfFirstResult, indexOfLastResult);
+  const totalPages = Math.ceil(filteredResults.length / resultsPerPage);
+
+  // Reset to first page when filter changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Function to generate page numbers with ellipsis
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5; // Số trang tối đa hiển thị
+
+    if (totalPages <= maxVisiblePages) {
+      // Nếu tổng số trang ít hơn maxVisiblePages, hiển thị tất cả
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Luôn hiển thị trang đầu tiên
+      pageNumbers.push(1);
+
+      // Tính toán các trang ở giữa
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+      // Điều chỉnh startPage và endPage để luôn hiển thị maxVisiblePages - 2 trang
+      if (currentPage <= 2) {
+        endPage = maxVisiblePages - 1;
+      } else if (currentPage >= totalPages - 1) {
+        startPage = totalPages - (maxVisiblePages - 2);
+      }
+
+      // Thêm dấu ... nếu cần
+      if (startPage > 2) {
+        pageNumbers.push('...');
+      }
+
+      // Thêm các trang ở giữa
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      // Thêm dấu ... nếu cần
+      if (endPage < totalPages - 1) {
+        pageNumbers.push('...');
+      }
+
+      // Luôn hiển thị trang cuối cùng
+      pageNumbers.push(totalPages);
+    }
+
+    return pageNumbers;
+  };
+
   // Styles
   const containerStyle = {
     backgroundColor: "#f6f9fc",
@@ -112,21 +185,23 @@ const UAnalysis = () => {
     justifyContent: "center",
     alignItems: "center",
     padding: "2rem",
+    boxSizing: "border-box",
   };
 
   const wrapperStyle = {
-    width: "100%",
-    maxWidth: "600px",
+    width: "90%",
+    maxWidth: "1200px",
     padding: "2rem",
     background: "#fff",
     borderRadius: "20px",
     boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)",
     textAlign: "center",
+    margin: "0 auto",
   };
 
   const uploadBoxStyle = {
     width: "100%",
-    minHeight: "150px",
+    minHeight: "200px",
     border: "2px dashed #ccc",
     borderRadius: "16px",
     display: "flex",
@@ -137,6 +212,7 @@ const UAnalysis = () => {
     position: "relative",
     cursor: "pointer",
     marginBottom: "1.5rem",
+    transition: "all 0.3s ease",
   };
 
   const inputStyle = {
@@ -187,15 +263,15 @@ const UAnalysis = () => {
                 />
               </div>
               {error && (
-                <p style={{ color: "red", fontSize: "0.9rem" }}>{error}</p>
+                <p style={{ color: "red", fontSize: "0.9rem", marginBottom: "1rem" }}>{error}</p>
               )}
               {file && (
-                <p style={{ color: "green", fontSize: "0.9rem" }}>
+                <p style={{ color: "green", fontSize: "0.9rem", marginBottom: "1rem" }}>
                   File selected: {file.name}
                 </p>
               )}
 
-              <p style={{ margin: "1rem 0", fontWeight: "bold" }}>OR</p>
+              <p style={{ margin: "1.5rem 0", fontWeight: "bold", fontSize: "1.1rem" }}>OR</p>
 
               <input
                 type="text"
@@ -204,11 +280,12 @@ const UAnalysis = () => {
                 onChange={(e) => setUrl(e.target.value)}
                 style={{
                   width: "100%",
-                  padding: "10px",
+                  padding: "12px",
                   fontSize: "1rem",
                   border: "1px solid #ccc",
                   borderRadius: "10px",
-                  marginBottom: "1rem",
+                  marginBottom: "1.5rem",
+                  boxSizing: "border-box",
                 }}
               />
 
@@ -218,49 +295,184 @@ const UAnalysis = () => {
             </>
           ) : (
             <>
-              <h3 style={{ marginBottom: "1.5rem" }}>Analysis Results</h3>
-              {results.map((item, index) => (
-                <div
-                  key={index}
-                  style={{
-                    backgroundColor: item.detection ? "#ffe6e6" : "#e6ffe6",
-                    borderLeft: `5px solid ${item.detection ? "red" : "green"}`,
-                    padding: "1rem",
-                    borderRadius: "10px",
-                    marginBottom: "1rem",
-                    textAlign: "left",
-                  }}
-                >
-                  <p style={{ margin: 0 }}>
-                    <strong>URL:</strong> {item.original_url}
-                  </p>
-                  <p style={{ margin: 0 }}>
-                    <strong>Detection:</strong>{" "}
-                    <span style={{ color: item.detection ? "red" : "green" }}>
-                      {item.detection ? "Detected" : "Benign"}
-                    </span>
-                  </p>
-                  <p style={{ margin: 0 }}>
-                    <strong>Classifier:</strong> {item.classifier}
-                  </p>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '2rem'
+              }}>
+                <h3 style={{ margin: 0, fontSize: "1.5rem" }}>Analysis Results</h3>
+                
+                {/* Filter Controls */}
+                <div style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  alignItems: 'center'
+                }}>
+                  <FaFilter style={{ color: '#666' }} />
+                  <select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      borderRadius: '5px',
+                      border: '1px solid #ccc',
+                      backgroundColor: '#fff',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    <option value="all">All Results</option>
+                    <option value="detected">Malware Detected</option>
+                    <option value="benign">Benign</option>
+                  </select>
                 </div>
-              ))}
+              </div>
+
+              <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", 
+                gap: "1rem",
+                width: "100%"
+              }}>
+                {currentResults.map((item, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      backgroundColor: item.detection ? "#ffe6e6" : "#e6ffe6",
+                      borderLeft: `5px solid ${item.detection ? "red" : "green"}`,
+                      padding: "1.5rem",
+                      borderRadius: "10px",
+                      textAlign: "left",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    <p style={{ margin: "0 0 0.5rem 0", wordBreak: "break-all" }}>
+                      <strong>URL:</strong> {item.original_url}
+                    </p>
+                    <p style={{ margin: "0 0 0.5rem 0" }}>
+                      <strong>Detection:</strong>{" "}
+                      <span style={{ color: item.detection ? "red" : "green" }}>
+                        {item.detection ? "Detected" : "Benign"}
+                      </span>
+                    </p>
+                    <p style={{ margin: 0 }}>
+                      <strong>Classifier:</strong> {item.classifier}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Show message when no results match filter */}
+              {currentResults.length === 0 && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '2rem',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '10px',
+                  marginTop: '1rem'
+                }}>
+                  No results match the selected filter
+                </div>
+              )}
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  marginTop: '2rem',
+                  marginBottom: '1rem'
+                }}>
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      border: 'none',
+                      borderRadius: '5px',
+                      backgroundColor: currentPage === 1 ? '#ccc' : '#1a00ff',
+                      color: '#fff',
+                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    <FaChevronLeft /> Previous
+                  </button>
+
+                  <div style={{
+                    display: 'flex',
+                    gap: '0.5rem',
+                    alignItems: 'center'
+                  }}>
+                    {getPageNumbers().map((pageNum, index) => (
+                      pageNum === '...' ? (
+                        <span key={`ellipsis-${index}`} style={{ padding: '0 0.5rem' }}>...</span>
+                      ) : (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            border: 'none',
+                            borderRadius: '5px',
+                            backgroundColor: currentPage === pageNum ? '#1a00ff' : '#f0f0f0',
+                            color: currentPage === pageNum ? '#fff' : '#000',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          {pageNum}
+                        </button>
+                      )
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      border: 'none',
+                      borderRadius: '5px',
+                      backgroundColor: currentPage === totalPages ? '#ccc' : '#1a00ff',
+                      color: '#fff',
+                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    Next <FaChevronRight />
+                  </button>
+                </div>
+              )}
 
               <button
                 style={{
                   marginTop: "1rem",
-                  padding: "0.5rem 1.5rem",
+                  padding: "0.8rem 2rem",
                   border: "none",
                   borderRadius: "10px",
                   backgroundColor: "#1a00ff",
                   color: "#fff",
                   cursor: "pointer",
+                  fontSize: "1rem",
+                  transition: "all 0.3s ease",
                 }}
                 onClick={() => {
                   setShowResults(false);
                   setResults([]);
                   setFile(null);
                   setUrl("");
+                  setCurrentPage(1);
+                  setFilter("all"); // Reset filter
                 }}
               >
                 Analyse Another

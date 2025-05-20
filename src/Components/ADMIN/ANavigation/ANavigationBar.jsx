@@ -1,7 +1,7 @@
 import React from "react";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import Nav from "react-bootstrap/Nav";
@@ -26,6 +26,12 @@ const ANavigationBar = () => {
 //   const [show, setShow] = useState(false);
 //   const handleClose = () => setShow(false);
 //   const handleShow = () => setShow(true);
+
+  const location = useLocation();
+
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
 
   return (
     // <Navbar expand="lg" className="bg-body-tertiary d-flex gap-4 sticky-top">
@@ -89,24 +95,56 @@ const ANavigationBar = () => {
     // </Navbar>
    <Navbar expand="lg" className="bg-body-tertiary sticky-top">
   <Container fluid>
-    <Navbar.Brand href="#">Admin's Panel</Navbar.Brand>
+    <Navbar.Brand href="#">URLScanner</Navbar.Brand>
 
     <Navbar.Toggle aria-controls="navbarScroll" />
 
     <Navbar.Collapse id="navbarScroll" className="justify-content-between">
       {/* Left-side nav links (collapse on small screens) */}
       <Nav className="d-flex gap-3">
-        <Nav.Link as={Link} to="/ADash">
+        <Nav.Link 
+          as={Link} 
+          to="/ADash"
+          className={isActive('/ADash') ? 'active' : ''}
+          style={{
+            color: isActive('/ADash') ? '#1a00ff' : 'inherit',
+            fontWeight: isActive('/ADash') ? 'bold' : 'normal'
+          }}
+        >
           <i className="fa-solid fa-house"></i> Dashboard
         </Nav.Link>
-        <Nav.Link as={Link} to="/AAnalysis">
+        <Nav.Link 
+          as={Link} 
+          to="/AAnalysis"
+          className={isActive('/AAnalysis') ? 'active' : ''}
+          style={{
+            color: isActive('/AAnalysis') ? '#1a00ff' : 'inherit',
+            fontWeight: isActive('/AAnalysis') ? 'bold' : 'normal'
+          }}
+        >
           <i className="fa-solid fa-magnifying-glass-chart"></i> Analysis
         </Nav.Link>
-        <Nav.Link as={Link} to="/AManagement">
+        <Nav.Link 
+          as={Link} 
+          to="/AManagement"
+          className={isActive('/AManagement') ? 'active' : ''}
+          style={{
+            color: isActive('/AManagement') ? '#1a00ff' : 'inherit',
+            fontWeight: isActive('/AManagement') ? 'bold' : 'normal'
+          }}
+        >
           <i className="fa fa-user"></i> User Management
         </Nav.Link>
-        <Nav.Link as={Link} to="/ASubmissionReview">
-          <i className="fa fa-user"></i> Submission Review
+        <Nav.Link 
+          as={Link} 
+          to="/ASubmissionReview"
+          className={isActive('/ASubmissionReview') ? 'active' : ''}
+          style={{
+            color: isActive('/ASubmissionReview') ? '#1a00ff' : 'inherit',
+            fontWeight: isActive('/ASubmissionReview') ? 'bold' : 'normal'
+          }}
+        >
+          <i className="fa fa-clipboard-check"></i> Submission Review
         </Nav.Link>
       </Nav>
 
