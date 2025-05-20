@@ -10,7 +10,7 @@ import ListGroup from "react-bootstrap/ListGroup";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./A-Navigation-Bar.css";
-import ProfileImage from "../../../assets/Profile.png";
+import profileImage from "../../../assets/profile.png";
 
 // ********************************************************************
 // ********************************************************************
@@ -152,7 +152,7 @@ const ANavigationBar = () => {
       <Nav className="d-flex gap-4">
         <Nav.Link href="#profile">
           <img
-            src={ProfileImage}
+            src={profileImage}
             alt="Profile"
             style={{ width: "32px", height: "32px", borderRadius: "50%" }}
           />
