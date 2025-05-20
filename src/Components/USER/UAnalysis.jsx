@@ -3,10 +3,21 @@ import "../ADMIN/Common-Page.css";
 import { FaPaperPlane } from "react-icons/fa";
 import UNavigationBar from "./uNavigation/UNavigationBar";
 
+
 const UAnalysis = () => {
+
+  const token = localStorage.getItem("user_token");
+  if (!token) {
+    window.location.href = "/";
+    return null;
+  }
+
   const [file, setFile] = useState(null);
+  const [url, setUrl] = useState("");
   const [error, setError] = useState("");
-  const [showResults, setShowResults] = useState(false); // Toggle for result display
+  const [loading, setLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [results, setResults] = useState([]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -25,30 +36,87 @@ const UAnalysis = () => {
     }
   };
 
-  const handleAnalyseClick = () => {
-    if (file || url.trim()) {
-      setError("");
-      setShowResults(true);
-    } else {
+  const handleAnalyseClick = async () => {
+    if (!file && !url.trim()) {
       setError("Please upload a file or enter a URL before analysing.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      if (url.trim()) {
+        // API call for single URL
+        const response = await fetch(
+          "https://urlclassifier-g5eub3ggf8gkf2fz.australiaeast-01.azurewebsites.net/api/prediction/single_url",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ url }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (data.error_code === 0) {
+          setResults([data.data]);
+          setShowResults(true);
+        } else {
+          setError("Error from API: " + data.message);
+        }
+      } else if (file) {
+        // API call for file upload
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch(
+          "https://urlclassifier-g5eub3ggf8gkf2fz.australiaeast-01.azurewebsites.net/api/prediction/file_upload",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+            body: formData,
+          }
+        );
+
+        const data = await response.json();
+
+        if (data.error_code === 0) {
+          setResults(data.items);
+          setShowResults(true);
+        } else {
+          setError("Error from API: " + data.message);
+        }
+      }
+    } catch (err) {
+      setError("Something went wrong. Try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
-
-  const [url, setUrl] = useState("");
 
   // Styles
   const containerStyle = {
     backgroundColor: "#f6f9fc",
     width: "100%",
-    height: "100vh",
+    minHeight: "100vh",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    padding: "2rem",
   };
 
   const wrapperStyle = {
     width: "100%",
-    maxWidth: "500px",
+    maxWidth: "600px",
     padding: "2rem",
     background: "#fff",
     borderRadius: "20px",
@@ -97,13 +165,6 @@ const UAnalysis = () => {
     float: "right",
     marginTop: "1rem",
   };
-  // ********************************************************************
-  // ********************************************************************
-  // ********************************************************************
-  // *********************** SECTION BREAK ******************************
-  // ********************************************************************
-  // ********************************************************************
-  // ********************************************************************
 
   return (
     <>
@@ -152,75 +213,57 @@ const UAnalysis = () => {
               />
 
               <button onClick={handleAnalyseClick} style={buttonStyle}>
-                Analyse <FaPaperPlane />
+                {loading ? "Analysing..." : "Analyse"} <FaPaperPlane />
               </button>
             </>
           ) : (
             <>
-              <div
-                style={{
-                  backgroundColor: "#ff4d4f",
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                  borderRadius: "10px 10px 0 0",
-                  padding: "10px",
-                }}
-              >
-                NetworkDataset.csv
-              </div>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  marginTop: "20px",
-                  marginBottom: "20px",
-                }}
-              >
-                <tbody>
-                  <tr>
-                    <td style={{ padding: "10px", fontWeight: "bold" }}>
-                      MALWARE TYPE
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        color: "red",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      DDoS
-                    </td>
-                  </tr>
-                  {/* <tr>
-                    <td style={{ padding: "10px", fontWeight: "bold" }}>
-                      SEVERITY LEVEL
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        color: "red",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      HIGH
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: "10px", fontWeight: "bold" }}>
-                      ACCURACY
-                    </td>
-                    <td style={{ padding: "10px", fontWeight: "bold" }}>96%</td>
-                  </tr> */}
-                </tbody>
-              </table>
-              <p style={{ fontSize: "0.95rem", color: "#333" }}>
-                Know more about this Malware Insight and Prevention?
-              </p>
+              <h3 style={{ marginBottom: "1.5rem" }}>Analysis Results</h3>
+              {results.map((item, index) => (
+                <div
+                  key={index}
+                  style={{
+                    backgroundColor: item.detection ? "#ffe6e6" : "#e6ffe6",
+                    borderLeft: `5px solid ${item.detection ? "red" : "green"}`,
+                    padding: "1rem",
+                    borderRadius: "10px",
+                    marginBottom: "1rem",
+                    textAlign: "left",
+                  }}
+                >
+                  <p style={{ margin: 0 }}>
+                    <strong>URL:</strong> {item.original_url}
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    <strong>Detection:</strong>{" "}
+                    <span style={{ color: item.detection ? "red" : "green" }}>
+                      {item.detection ? "Detected" : "Benign"}
+                    </span>
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    <strong>Classifier:</strong> {item.classifier}
+                  </p>
+                </div>
+              ))}
+
               <button
-                style={{ ...buttonStyle, float: "none", marginTop: "1rem" }}
+                style={{
+                  marginTop: "1rem",
+                  padding: "0.5rem 1.5rem",
+                  border: "none",
+                  borderRadius: "10px",
+                  backgroundColor: "#1a00ff",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  setShowResults(false);
+                  setResults([]);
+                  setFile(null);
+                  setUrl("");
+                }}
               >
-                Save to History
+                Analyse Another
               </button>
             </>
           )}

@@ -9,7 +9,7 @@ import Navbar from "react-bootstrap/Navbar";
 import ListGroup from "react-bootstrap/ListGroup";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import "./U-Navigation-Bar.css";
+import "./A-Navigation-Bar.css";
 import ProfileImage from "../../../assets/Profile.png";
 
 // ********************************************************************
@@ -20,10 +20,12 @@ import ProfileImage from "../../../assets/Profile.png";
 // ********************************************************************
 // ********************************************************************
 
-const UNavigationBar = () => {
-  //   const [show, setShow] = useState(false);
-  //   const handleClose = () => setShow(false);
-  //   const handleShow = () => setShow(true);
+
+const ANavigationBar = () => {
+   
+//   const [show, setShow] = useState(false);
+//   const handleClose = () => setShow(false);
+//   const handleShow = () => setShow(true);
 
   return (
     // <Navbar expand="lg" className="bg-body-tertiary d-flex gap-4 sticky-top">
@@ -85,46 +87,45 @@ const UNavigationBar = () => {
     //     </Navbar.Collapse>
     //   </Container>
     // </Navbar>
-    <Navbar expand="lg" className="bg-body-tertiary sticky-top">
-      <Container fluid>
-        <Navbar.Brand href="#">User's Panel</Navbar.Brand>
+   <Navbar expand="lg" className="bg-body-tertiary sticky-top">
+  <Container fluid>
+    <Navbar.Brand href="#">Admin's Panel</Navbar.Brand>
 
-        <Navbar.Toggle aria-controls="navbarScroll" />
+    <Navbar.Toggle aria-controls="navbarScroll" />
 
-        <Navbar.Collapse id="navbarScroll" className="justify-content-between">
-          {/* Left-side nav links (collapse on small screens) */}
-          <Nav className="d-flex gap-3">
-            <Nav.Link as={Link} to="/UDash">
-              <i className="fa-solid fa-house"></i> Dashboard
-            </Nav.Link>
-            <Nav.Link as={Link} to="/UAnalysis">
-              <i className="fa-solid fa-magnifying-glass-chart"></i> Analysis
-            </Nav.Link>
-            {/* <Nav.Link as={Link} to="/UManagement">
-              <i className="fa fa-user"></i> User Management
-            </Nav.Link> */}
-            <Nav.Link as={Link} to="/UHistory">
-              <i className="fa fa-user"></i> History
-            </Nav.Link>
-          </Nav>
+    <Navbar.Collapse id="navbarScroll" className="justify-content-between">
+      {/* Left-side nav links (collapse on small screens) */}
+      <Nav className="d-flex gap-3">
+        <Nav.Link as={Link} to="/ADash">
+          <i className="fa-solid fa-house"></i> Dashboard
+        </Nav.Link>
+        <Nav.Link as={Link} to="/AAnalysis">
+          <i className="fa-solid fa-magnifying-glass-chart"></i> Analysis
+        </Nav.Link>
+        <Nav.Link as={Link} to="/AManagement">
+          <i className="fa fa-user"></i> User Management
+        </Nav.Link>
+      </Nav>
 
-          {/* Right-side (profile & logout) */}
-          <Nav className="d-flex gap-4">
-            <Nav.Link href="#profile">
-              <img
-                src={ProfileImage}
-                alt="Profile"
-                style={{ width: "32px", height: "32px", borderRadius: "50%" }}
-              />
-            </Nav.Link>
-            <Nav.Link as={Link} to="/ULoginReg">
-              <i className="fa-solid fa-lock"></i> LogOut
-            </Nav.Link>
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
-  );
-};
+      {/* Right-side (profile & logout) */}
+      <Nav className="d-flex gap-4">
+        <Nav.Link href="#profile">
+          <img
+            src={ProfileImage}
+            alt="Profile"
+            style={{ width: "32px", height: "32px", borderRadius: "50%" }}
+          />
+        </Nav.Link>
+        <Nav.Link as={Link} to="/LoginReg">
+          <i className="fa-solid fa-lock"></i> LogOut
+        </Nav.Link>
+      </Nav>
+    </Navbar.Collapse>
+  </Container>
+</Navbar>
 
-export default UNavigationBar;
+
+  )
+}
+
+export default ANavigationBar

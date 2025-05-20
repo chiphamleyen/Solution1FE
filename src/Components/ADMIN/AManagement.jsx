@@ -1,71 +1,94 @@
-import React, { useState } from "react";
-import ANavigationBar from "../ADMIN/ANavigation/ANavigationBar";
-import { Table, Button, Modal, Form, Card, Pagination } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Table, Button, Modal, Form, Card } from "react-bootstrap";
+import axios from "axios";
+import ANavigationBar from "../ADMIN/ANavigation/ANavigationBar"; // Assuming this exists
 
 const AManagement = () => {
-  const [users, setUsers] = useState([
-    {
-      user_name: "testAdmin",
-      email: "testAdmin@gmail.com",
-      role: "user",
-      created_at: "2025-05-18T05:37:03.443000",
-    },
-    {
-      user_name: "janeDoe",
-      email: "jane@example.com",
-      role: "user",
-      created_at: "2025-04-01T12:00:00.000Z",
-    },
-    {
-      user_name: "johnDoe",
-      email: "john@example.com",
-      role: "admin",
-      created_at: "2025-03-15T10:00:00.000Z",
-    },
-    {
-      user_name: "alice",
-      email: "alice@example.com",
-      role: "user",
-      created_at: "2025-02-10T08:00:00.000Z",
-    },
-    {
-      user_name: "bob",
-      email: "bob@example.com",
-      role: "user",
-      created_at: "2025-01-20T09:30:00.000Z",
-    },
-    // Add more for demo if needed
-  ]);
-
+  const [users, setUsers] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
   const [updatedPassword, setUpdatedPassword] = useState("");
-
-  // Pagination setup
-  const itemsPerPage = 3;
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
-  const paginatedUsers = users.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  useEffect(() => {
+    const token = localStorage.getItem("admin_token");
+    if (!token) {
+      window.location.href = "/";
+      return;
+    }
 
-  const renderPagination = () => {
-    const totalPages = Math.ceil(users.length / itemsPerPage);
-    return (
-      <Pagination>
-        {[...Array(totalPages)].map((_, idx) => (
-          <Pagination.Item
-            key={idx}
-            active={idx + 1 === currentPage}
-            onClick={() => setCurrentPage(idx + 1)}
-          >
-            {idx + 1}
-          </Pagination.Item>
-        ))}
-      </Pagination>
+    // Fetch users
+    axios
+      .get(
+        `https://urlclassifier-g5eub3ggf8gkf2fz.australiaeast-01.azurewebsites.net/api/user_management/list_users?page=${currentPage}&size=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      )
+      .then((response) => {
+        setUsers(response.data.items);
+        setTotalPages(Math.ceil(response.data.total / 10));
+      })
+      .catch((error) => {
+        console.error("Error fetching users:", error);
+      });
+  }, [currentPage]);
+
+  const handleDecision = (id, decision) => {
+    setSubmissions((prev) =>
+      prev.map((entry) =>
+        entry.id === id ? { ...entry, status: decision } : entry
+      )
     );
+  };
+
+  const handleSaveChanges = async () => {
+    if (!editUser || !updatedName || !updatedPassword) {
+      alert("Both fields are required.");
+      return;
+    }
+
+    const updatedUser = {
+      ...editUser,
+      user_name: updatedName,
+      email: updatedPassword,
+    };
+
+    const token = localStorage.getItem("admin_token");
+    const userId = editUser._id;
+
+    try {
+      const response = await axios.put(
+        `https://urlclassifier-g5eub3ggf8gkf2fz.australiaeast-01.azurewebsites.net/api/user_management/${userId}`,
+        {
+          user_name: updatedUser.user_name,
+          email: updatedUser.email,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setUsers((prev) =>
+        prev.map((u) => (u._id === userId ? updatedUser : u))
+      );
+      setShowModal(false);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Error updating user:", error.response || error);
+      setShowErrorModal(true);
+    }
   };
 
   return (
@@ -87,7 +110,7 @@ const AManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedUsers.map((user, idx) => (
+              {users.map((user, idx) => (
                 <tr key={idx}>
                   <td>{user.user_name}</td>
                   <td>{user.email}</td>
@@ -100,7 +123,7 @@ const AManagement = () => {
                       onClick={() => {
                         setEditUser(user);
                         setUpdatedName(user.user_name);
-                        setUpdatedPassword("");
+                        setUpdatedPassword(user.email);
                         setShowModal(true);
                       }}
                     >
@@ -111,7 +134,25 @@ const AManagement = () => {
               ))}
             </tbody>
           </Table>
-          {renderPagination()}
+          <div className="pagination-controls d-flex justify-content-between align-items-center mt-3">
+            <Button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            >
+              Previous
+            </Button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              disabled={currentPage === totalPages}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+            >
+              Next
+            </Button>
+          </div>
         </Card.Body>
       </Card>
 
@@ -123,18 +164,17 @@ const AManagement = () => {
         <Modal.Body>
           <Form>
             <Form.Group controlId="formUsername">
-              <Form.Label>Username</Form.Label>
+              <Form.Label>New Username</Form.Label>
               <Form.Control
                 type="text"
                 value={updatedName}
                 onChange={(e) => setUpdatedName(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="formPassword" className="mt-3">
-              <Form.Label>New Password</Form.Label>
+            <Form.Group controlId="formEmail" className="mt-3">
+              <Form.Label>New Email</Form.Label>
               <Form.Control
-                type="password"
-                placeholder="Leave blank to keep unchanged"
+                type="email"
                 value={updatedPassword}
                 onChange={(e) => setUpdatedPassword(e.target.value)}
               />
@@ -145,20 +185,38 @@ const AManagement = () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button
-            variant="success"
-            onClick={() => {
-              setUsers((prev) =>
-                prev.map((u) =>
-                  u.email === editUser.email
-                    ? { ...u, user_name: updatedName }
-                    : u
-                )
-              );
-              setShowModal(false);
-            }}
-          >
+          <Button variant="success" onClick={handleSaveChanges}>
             Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Success!</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>User updated successfully.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowSuccessModal(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal show={showErrorModal} onHide={() => setShowErrorModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Error!</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>There was an error updating the user. Please try again later.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowErrorModal(false)}>
+            Close
           </Button>
         </Modal.Footer>
       </Modal>
