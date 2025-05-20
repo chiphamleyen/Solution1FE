@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../ADMIN/Common-Page.css";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import UNavigationBar from "./uNavigation/UNavigationBar";
+import UNavigationBar from "./UNavigation/UNavigationBar";
 import axios from "axios";
 
 // Colors for Pie chart

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
+import "../ADMIN/Common-Page.css";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { Table, Button, Card, Alert, Spinner, Pagination, Container, Row, Col, Form } from "react-bootstrap";
-import UNavigationBar from "./uNavigation/UNavigationBar";
+import UNavigationBar from "./UNavigation/UNavigationBar";
 import axios from "axios";
 
 const UHistory = () => {

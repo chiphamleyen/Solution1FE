@@ -1,5 +1,5 @@
 import React from "react";
-import UNavigationBar from "./uNavigation/UNavigationBar";
+import UNavigationBar from "./UNavigation/UNavigationBar";
 import { Card, ListGroup } from "react-bootstrap";
 import {
   LineChart,

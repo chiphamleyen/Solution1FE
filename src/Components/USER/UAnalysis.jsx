@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../ADMIN/Common-Page.css";
 import { FaPaperPlane, FaChevronLeft, FaChevronRight, FaFilter } from "react-icons/fa";
-import UNavigationBar from "./uNavigation/UNavigationBar";
+import UNavigationBar from "./UNavigation/UNavigationBar";
 
 
 const UAnalysis = () => {
