@@ -1,137 +1,322 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Common-Page.css";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import ANavigationBar from "./ANavigation/ANavigationBar";
+import axios from "axios";
 
-// ---------------- Data ----------------
-const pieChartData = [
-  { name: "Benign", value: 50 },
-  { name: "Malware", value: 30 },
-  { name: "Phishing", value: 15 },
-  { name: "Spam", value: 5 },
-];
+// Colors for Pie chart
+const COLORS = ["#00C49F", "#FF8042", "#FFBB28", "#8884d8", "#FF6666"];
 
-const COLORS = ["#00C49F", "#FF8042", "#FFBB28", "#8884d8"];
-
-const historyData = [
-  { user: "john123", url: "http://example1.com", type: "Trojan", severity: "High", status: "Pending" },
-  { user: "alice99", url: "http://safe-site.org", type: "Benign", severity: "-", status: "Accepted" },
-  { user: "dev_guy", url: "http://suspicious.biz", type: "Worm", severity: "Medium", status: "Rejected" },
-  { user: "new_user", url: "http://phishy.net", type: "Phishing", severity: "High", status: "Accepted" },
-];
-
-const recentApproved = [
-  { url: "http://safe-site.org", type: "Benign" },
-  { url: "http://trusted-source.com", type: "Benign" },
-  { url: "http://clean-file.net", type: "Benign" },
-];
-
-// ---------------- Pie Label ----------------
 const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+const renderCustomizedLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent,
+  index,
+  payload,
+}) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
   return (
-    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12}>
-      {`${pieChartData[index].name} (${(percent * 100).toFixed(0)}%)`}
+    <text
+      x={x}
+      y={y}
+      fill="white"
+      textAnchor="middle"
+      dominantBaseline="central"
+      fontSize={12}
+    >
+      {`${payload.type} (${(percent * 100).toFixed(0)}%)`}
     </text>
   );
 };
 
-// ---------------- Component ----------------
 const ADash = () => {
+  const token = localStorage.getItem("admin_token");
+  if (!token) {
+    window.location.href = "/";
+    return null;
+  }
+
+  // ------------------- State -------------------
+  const [chartData, setChartData] = useState([]);
+  const [chartLoading, setChartLoading] = useState(true);
+  const [chartError, setChartError] = useState(null);
+
+  const [historyData, setHistoryData] = useState([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyTotalPages, setHistoryTotalPages] = useState(1);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState(null);
+
+  const [approvedData, setApprovedData] = useState([]);
+  const [approvedPage, setApprovedPage] = useState(1);
+  const [approvedTotalPages, setApprovedTotalPages] = useState(1);
+  const [approvedLoading, setApprovedLoading] = useState(true);
+  const [approvedError, setApprovedError] = useState(null);
+
+  const size = 5;
+  const size10 = 10;
+
+  // ------------------- API Calls -------------------
+
+  const fetchPieData = async () => {
+    setChartLoading(true);
+    try {
+      const response = await axios.get(
+        "https://urlclassifier-g5eub3ggf8gkf2fz.australiaeast-01.azurewebsites.net/api/report/admin_report",
+        {
+          params: {
+            min_date: "2025-01-01",
+            max_date: "2025-06-01",
+          },
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const apiData = response.data?.data?.classifier || [];
+      setChartData(apiData);
+    } catch (error) {
+      setChartError(error.message);
+    } finally {
+      setChartLoading(false);
+    }
+  };
+
+  const fetchHistory = async (page) => {
+    setHistoryLoading(true);
+    try {
+      const response = await axios.get(
+        "https://urlclassifier-g5eub3ggf8gkf2fz.australiaeast-01.azurewebsites.net/api/history/all_history",
+        {
+          params: {
+            min_date: "2025-01-01",
+            max_date: "2030-06-01",
+            page,
+            size10,
+          },
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setHistoryData(response.data.items || []);
+      setHistoryTotalPages(Math.ceil((response.data.total || 0) / size));
+    } catch (error) {
+      setHistoryError(error.message);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const fetchApproved = async (page) => {
+    setApprovedLoading(true);
+    try {
+      const response = await axios.get(
+        "https://urlclassifier-g5eub3ggf8gkf2fz.australiaeast-01.azurewebsites.net/api/history/approved_global_history",
+        {
+          params: {
+            min_date: "2025-01-01",
+            max_date: "2030-06-01",
+            page,
+            size,
+          },
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setApprovedData(response.data.items || []);
+      setApprovedTotalPages(Math.ceil((response.data.total || 0) / size));
+    } catch (error) {
+      setApprovedError(error.message);
+    } finally {
+      setApprovedLoading(false);
+    }
+  };
+
+  // ------------------- Effects -------------------
+  useEffect(() => {
+    fetchPieData();
+  }, []);
+
+  useEffect(() => {
+    fetchHistory(historyPage);
+  }, [historyPage]);
+
+  useEffect(() => {
+    fetchApproved(approvedPage);
+  }, [approvedPage]);
+
+  // ------------------- Render -------------------
   return (
     <div className="commonStyle">
       <ANavigationBar />
       <Container className="mt-4">
         <Row className="mb-4">
+          {/* URL Type Distribution */}
           <Col md={6}>
             <Card>
               <Card.Body>
                 <Card.Title>URL Type Distribution</Card.Title>
-                <PieChart width={400} height={300}>
-                  <Pie
-                    data={pieChartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                {chartLoading ? (
+                  <p>Loading chart...</p>
+                ) : chartError ? (
+                  <p className="text-danger">Error: {chartError}</p>
+                ) : (
+                  <PieChart width={400} height={300}>
+                    <Pie
+                      data={chartData}
+                      dataKey="total"
+                      nameKey="type"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                )}
               </Card.Body>
             </Card>
           </Col>
 
+          {/* Recently Approved URLs */}
           <Col md={6}>
             <Card>
               <Card.Body>
                 <Card.Title>Recently Approved URLs</Card.Title>
-                <ul className="list-group">
-                  {recentApproved.map((item, idx) => (
-                    <li key={idx} className="list-group-item">
-                      <strong>{item.type}</strong> –{" "}
-                      <a href={item.url} target="_blank" rel="noopener noreferrer">
-                        {item.url}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+                {approvedLoading ? (
+                  <p>Loading approved URLs...</p>
+                ) : approvedError ? (
+                  <p className="text-danger">Error: {approvedError}</p>
+                ) : (
+                  <>
+                    <ul className="list-group">
+                      {approvedData.map((item, idx) => (
+                        <li key={idx} className="list-group-item">
+                          <strong>{item.classifier}</strong> –{" "}
+                          <a
+                            href={
+                              item.original_url.startsWith("http")
+                                ? item.original_url
+                                : `http://${item.original_url}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {item.original_url}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                      <Button
+                        variant="outline-secondary"
+                        disabled={approvedPage === 1}
+                        onClick={() => setApprovedPage((prev) => prev - 1)}
+                      >
+                        &laquo; Previous
+                      </Button>
+                      <span>
+                        Page {approvedPage} of {approvedTotalPages}
+                      </span>
+                      <Button
+                        variant="outline-secondary"
+                        disabled={approvedPage === approvedTotalPages}
+                        onClick={() => setApprovedPage((prev) => prev + 1)}
+                      >
+                        Next &raquo;
+                      </Button>
+                    </div>
+                  </>
+                )}
               </Card.Body>
             </Card>
           </Col>
         </Row>
 
+        {/* Submission History */}
         <Row>
           <Col>
             <Card>
               <Card.Body>
                 <Card.Title>URL Submission History</Card.Title>
                 <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-                  <table className="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>User</th>
-                        <th>URL</th>
-                        <th>Type</th>
-                        <th>Severity</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {historyData.map((entry, i) => (
-                        <tr key={i}>
-                          <td>{entry.user}</td>
-                          <td>{entry.url}</td>
-                          <td>{entry.type}</td>
-                          <td>{entry.severity}</td>
-                          <td
-                            style={{
-                              color:
-                                entry.status === "Accepted"
-                                  ? "green"
-                                  : entry.status === "Rejected"
-                                  ? "red"
-                                  : "orange",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            {entry.status}
-                          </td>
+                  {historyLoading ? (
+                    <p>Loading...</p>
+                  ) : historyError ? (
+                    <p className="text-danger">Error: {historyError}</p>
+                  ) : (
+                    <table className="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>URL</th>
+                          <th>Type</th>
+                          <th>Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {historyData.map((entry, i) => (
+                          <tr key={entry._id || i}>
+                            <td>{entry.original_url}</td>
+                            <td>{entry.classifier}</td>
+                            <td
+                              style={{
+                                color:
+                                  entry.approved === "Approved"
+                                    ? "green"
+                                    : entry.approved === "Rejected"
+                                    ? "red"
+                                    : "orange",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {entry.approved}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+                <div className="d-flex justify-content-between align-items-center mt-3">
+                  <Button
+                    variant="outline-primary"
+                    disabled={historyPage === 1}
+                    onClick={() => setHistoryPage((prev) => prev - 1)}
+                  >
+                    &laquo; Previous
+                  </Button>
+                  <span>
+                    Page {historyPage} of {historyTotalPages}
+                  </span>
+                  <Button
+                    variant="outline-primary"
+                    disabled={historyPage === historyTotalPages}
+                    onClick={() => setHistoryPage((prev) => prev + 1)}
+                  >
+                    Next &raquo;
+                  </Button>
                 </div>
               </Card.Body>
             </Card>

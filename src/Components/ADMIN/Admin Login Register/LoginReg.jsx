@@ -152,6 +152,7 @@ const LoginReg = () => {
   };
 
   return (
+    <>
     <div className="container-1">
       <h1>ADMIN</h1>
       <div className={`wrapper ${action}`}>
@@ -277,6 +278,9 @@ const LoginReg = () => {
         </div>
       )}
     </div>
+    <button className="button-79" role="button"><Link to="/ULoginReg">User Login </Link> </button>
+
+    </>
   );
 };
 

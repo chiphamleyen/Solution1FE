@@ -10,6 +10,7 @@ import UAnalysis from "./Components/USER/UAnalysis";
 import UManagement from "./Components/USER/UManagement";
 import ULoginReg from "./Components/USER/User Login Register/ULoginReg";
 import ASubmissionReview from './Components/ADMIN/ASubmissionReview';
+import UHistory from './Components/USER/UHistory';
 
 
 
@@ -31,6 +32,7 @@ const App = () => {
           <Route path="UDash" element={<UDash />} />
           <Route path="UAnalysis" element={<UAnalysis/>} />
            <Route path="UManagement" element={<UManagement />} />
+           <Route path="UHistory" element={<UHistory />} />
         </Route>
       </Routes>
     </BrowserRouter>
