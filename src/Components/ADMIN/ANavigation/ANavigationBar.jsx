@@ -89,7 +89,7 @@ const ANavigationBar = () => {
     // </Navbar>
    <Navbar expand="lg" className="bg-body-tertiary sticky-top">
   <Container fluid>
-    <Navbar.Brand href="#">Admin's Panel</Navbar.Brand>
+    <Navbar.Brand href="#">URLScanner</Navbar.Brand>
 
     <Navbar.Toggle aria-controls="navbarScroll" />
 
