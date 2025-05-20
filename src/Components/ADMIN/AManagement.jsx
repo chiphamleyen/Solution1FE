@@ -7,6 +7,7 @@ const AManagement = () => {
   const [users, setUsers] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
   const [updatedPassword, setUpdatedPassword] = useState("");
@@ -14,6 +15,14 @@ const AManagement = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  
+  // New admin creation states
+  const [newAdmin, setNewAdmin] = useState({
+    username: "",
+    email: "",
+    password: ""
+  });
+  const [createAdminError, setCreateAdminError] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
@@ -91,6 +100,73 @@ const AManagement = () => {
     }
   };
 
+  const handleCreateAdmin = async () => {
+    if (!newAdmin.username || !newAdmin.email || !newAdmin.password) {
+      setCreateAdminError("All fields are required");
+      return;
+    }
+
+    const token = localStorage.getItem("admin_token");
+    try {
+      const response = await axios.post(
+        "https://urlclassifier-g5eub3ggf8gkf2fz.australiaeast-01.azurewebsites.net/api/user_management/create_admin",
+        {
+          user_name: newAdmin.username,
+          email: newAdmin.email,
+          password: newAdmin.password
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Reset form and show success
+      setNewAdmin({ username: "", email: "", password: "" });
+      setShowCreateAdminModal(false);
+      setShowSuccessModal(true);
+      
+      // Refresh user list
+      fetchUsers();
+    } catch (error) {
+      console.error("Error creating admin:", error);
+      setCreateAdminError(error.response?.data?.message || "Failed to create admin");
+    }
+  };
+
+  const fetchUsers = () => {
+    const token = localStorage.getItem("admin_token");
+    if (!token) {
+      window.location.href = "/";
+      return;
+    }
+
+    axios
+      .get(
+        `https://urlclassifier-g5eub3ggf8gkf2fz.australiaeast-01.azurewebsites.net/api/user_management/list_users?page=${currentPage}&size=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      )
+      .then((response) => {
+        setUsers(response.data.items);
+        setTotalPages(Math.ceil(response.data.total / 10));
+      })
+      .catch((error) => {
+        console.error("Error fetching users:", error);
+      });
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [currentPage]);
+
   return (
     <div className="commonStyle">
       <ANavigationBar />
@@ -98,7 +174,15 @@ const AManagement = () => {
       {/* USER MANAGEMENT */}
       <Card className="m-4">
         <Card.Body>
-          <Card.Title>User Management</Card.Title>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <Card.Title className="mb-0">User Management</Card.Title>
+            <Button 
+              variant="success" 
+              onClick={() => setShowCreateAdminModal(true)}
+            >
+              <i className="fa fa-plus me-2"></i>Create New Admin
+            </Button>
+          </div>
           <Table striped bordered hover responsive>
             <thead>
               <tr>
@@ -187,6 +271,59 @@ const AManagement = () => {
           </Button>
           <Button variant="success" onClick={handleSaveChanges}>
             Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Create Admin Modal */}
+      <Modal show={showCreateAdminModal} onHide={() => setShowCreateAdminModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Create New Admin</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3 d-flex align-items-center">
+              <Form.Label className="mb-0 me-3" style={{ minWidth: "100px" }}>Username</Form.Label>
+              <Form.Control
+                type="text"
+                value={newAdmin.username}
+                onChange={(e) => setNewAdmin({...newAdmin, username: e.target.value})}
+                placeholder="Enter username"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3 d-flex align-items-center">
+              <Form.Label className="mb-0 me-3" style={{ minWidth: "100px" }}>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={newAdmin.email}
+                onChange={(e) => setNewAdmin({...newAdmin, email: e.target.value})}
+                placeholder="Enter email"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3 d-flex align-items-center">
+              <Form.Label className="mb-0 me-3" style={{ minWidth: "100px" }}>Password</Form.Label>
+              <Form.Control
+                type="password"
+                value={newAdmin.password}
+                onChange={(e) => setNewAdmin({...newAdmin, password: e.target.value})}
+                placeholder="Enter password"
+              />
+            </Form.Group>
+            {createAdminError && (
+              <div className="text-danger mb-3">{createAdminError}</div>
+            )}
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => {
+            setShowCreateAdminModal(false);
+            setCreateAdminError("");
+            setNewAdmin({ username: "", email: "", password: "" });
+          }}>
+            Cancel
+          </Button>
+          <Button variant="success" onClick={handleCreateAdmin}>
+            Create Admin
           </Button>
         </Modal.Footer>
       </Modal>
